@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TeamMember } from '../types';
 import MemberCard from './MemberCard';
+import { getNextDayOff } from '../utils/dateUtils';
 
 interface DailyRosterProps {
   workingToday: TeamMember[];
@@ -87,7 +88,12 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
           {workingToday.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {workingToday.map(member => (
-                <MemberCard key={member.id} name={member.name} status="working" />
+                <MemberCard 
+                  key={member.id} 
+                  member={member} 
+                  status="working" 
+                  nextDayOff={getNextDayOff(member).toLocaleDateString('pt-BR')}
+                />
               ))}
             </div>
           ) : (
@@ -102,7 +108,7 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
           {offToday.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {offToday.map(member => (
-                <MemberCard key={member.id} name={member.name} status="off" />
+                <MemberCard key={member.id} member={member} status="off" />
               ))}
             </div>
           ) : (

@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { TeamMember } from '../types';
 import AddMemberForm from './AddMemberForm';
 import EditMemberModal from './EditMemberModal';
 import { TrashIcon, EditIcon } from './Icons';
+import { getNextDayOff } from '../utils/dateUtils';
 
 interface TeamManagementProps {
   teamMembers: TeamMember[];
@@ -37,7 +37,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember,
                   <div>
                     <p className="font-medium text-gray-100">{member.name}</p>
                     <p className="text-xs text-gray-400">
-                      Primeira folga: {new Date(member.firstDayOff).toLocaleDateString('pt-BR')}
+                      Próxima folga: {getNextDayOff(member).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
