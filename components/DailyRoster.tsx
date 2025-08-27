@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { TeamMember } from '../types';
 import MemberCard from './MemberCard';
 
@@ -10,7 +9,48 @@ interface DailyRosterProps {
 }
 
 const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, currentDate }) => {
+  const [isScheduling, setIsScheduling] = useState(false);
   const formattedDate = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'full' }).format(currentDate);
+
+  const handleSimulateNotification = async () => {
+    if (!('Notification' in window)) {
+      alert('Este navegador não suporta notificações de desktop.');
+      return;
+    }
+
+    let permission = Notification.permission;
+    if (permission === 'default') {
+      permission = await Notification.requestPermission();
+    }
+
+    if (permission === 'denied') {
+      alert('Permissão para notificações negada. Por favor, habilite nas configurações do seu navegador.');
+      return;
+    }
+
+    if (permission === 'granted') {
+      setIsScheduling(true);
+      alert('Notificação agendada para daqui a 10 segundos. Você pode sair da página para testar.');
+
+      setTimeout(() => {
+        const workingNames = workingToday.map(m => m.name).join(', ') || 'Ninguém';
+        const offNames = offToday.map(m => m.name).join(', ') || 'Ninguém';
+
+        const notificationBody = `Trabalhando: ${workingNames}\nDe Folga: ${offNames}`;
+        
+        try {
+          new Notification('📢 Lembrete de Escala 6x1', {
+            body: notificationBody,
+            icon: '/vite.svg',
+          });
+        } catch (e) {
+          console.error('Erro ao criar notificação: ', e);
+        }
+
+        setIsScheduling(false);
+      }, 10000); // 10 seconds
+    }
+  };
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-xl p-6 h-full">
@@ -20,13 +60,16 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
           <p className="text-teal-400 font-semibold">{formattedDate}</p>
         </div>
         <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 to-purple-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-            <button 
-              onClick={() => alert(`Simulando notificação de 5h da manhã:\n\nTrabalhando hoje: ${workingToday.length}\nDe folga: ${offToday.length}`)}
-              className="relative px-4 py-2 bg-black rounded-lg leading-none flex items-center"
-            >
-              <span className="text-indigo-400">Simular Notificação 5h</span>
-            </button>
+          <div className={`absolute -inset-0.5 bg-gradient-to-r from-pink-600 to-purple-600 rounded-lg blur opacity-75 ${!isScheduling && 'group-hover:opacity-100'} transition duration-1000 group-hover:duration-200`}></div>
+          <button
+            onClick={handleSimulateNotification}
+            disabled={isScheduling}
+            className="relative px-4 py-2 bg-black rounded-lg leading-none flex items-center disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            <span className="text-indigo-400 font-semibold">
+              {isScheduling ? 'Notificação Agendada...' : 'Simular Notificação 5h'}
+            </span>
+          </button>
         </div>
       </div>
       
@@ -62,7 +105,7 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
         </div>
       </div>
        <div className="mt-8 p-3 bg-gray-900/50 rounded-lg text-center text-sm text-gray-400">
-            <p><strong>Nota:</strong> A notificação real às 5h da manhã requer um servidor. Este botão simula como a notificação funcionaria.</p>
+            <p><strong>Nota:</strong> A notificação real às 5h da manhã requer um servidor. Este botão simula como a notificação funcionaria, permitindo testar mesmo com a página fechada.</p>
         </div>
     </div>
   );
