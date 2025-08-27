@@ -1,0 +1,5 @@
+{
+  "name": "Lembrete de escala de Escala 6x1",
+  "description": "Um aplicativo para supervisores gerenciarem equipes na escala 6x1, visualizando a escala diária de trabalho e folgas, e permitindo adicionar ou remover membros da equipe.",
+  "requestFramePermissions": []
+}
