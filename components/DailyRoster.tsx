@@ -30,7 +30,7 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
 
     if (permission === 'granted') {
       setIsScheduling(true);
-      alert('Notificação agendada para daqui a 10 segundos. Você pode sair da página para testar.');
+      alert('Notificação agendada para daqui a 10 segundos. Para testar, mantenha esta aba do navegador aberta.');
 
       setTimeout(() => {
         const workingNames = workingToday.map(m => m.name).join(', ') || 'Ninguém';
@@ -39,10 +39,16 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
         const notificationBody = `Trabalhando: ${workingNames}\nDe Folga: ${offNames}`;
         
         try {
+          // NOTE: For notifications to work reliably when the app is in the background (especially on mobile),
+          // a Service Worker is required. This implementation uses a simple setTimeout, which may be
+          // throttled or paused by the browser if the tab is inactive.
+          // FIX: Cast notification options to 'any' to allow the 'vibrate' property.
           new Notification('📢 Lembrete de Escala 6x1', {
             body: notificationBody,
             icon: '/vite.svg',
-          });
+            vibrate: [200, 100, 200], // Vibrate to make it more noticeable on mobile
+            requireInteraction: true, // Keep notification visible until user interaction on supported platforms
+          } as any);
         } catch (e) {
           console.error('Erro ao criar notificação: ', e);
         }
@@ -105,7 +111,8 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
         </div>
       </div>
        <div className="mt-8 p-3 bg-gray-900/50 rounded-lg text-center text-sm text-gray-400">
-            <p><strong>Nota:</strong> A notificação real às 5h da manhã requer um servidor. Este botão simula como a notificação funcionaria, permitindo testar mesmo com a página fechada.</p>
+            <p><strong>Nota:</strong> A notificação real às 5h da manhã requer um servidor. Este botão simula como a notificação funcionaria.</p>
+            <p className="mt-2"><strong>Teste no Celular:</strong> Para que a notificação de teste funcione em 10 segundos, mantenha o navegador aberto e em primeiro plano. Navegadores de celular podem pausar a contagem se o aplicativo estiver em segundo plano para economizar bateria.</p>
         </div>
     </div>
   );
