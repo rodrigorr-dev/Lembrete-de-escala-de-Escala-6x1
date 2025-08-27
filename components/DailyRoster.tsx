@@ -67,7 +67,7 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
             className="relative px-4 py-2 bg-black rounded-lg leading-none flex items-center disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <span className="text-indigo-400 font-semibold">
-              {isScheduling ? 'Notificação Agendada...' : 'Simular Notificação 5h'}
+              {isScheduling ? 'Notificação Agendada...' : 'Simular Notificação em 10s'}
             </span>
           </button>
         </div>

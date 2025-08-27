@@ -24,6 +24,14 @@ const App: React.FC = () => {
     setTeamMembers(prev => prev.filter(member => member.id !== id));
   }, [setTeamMembers]);
   
+  const updateMember = useCallback((id: string, name: string, firstDayOff: Date) => {
+    setTeamMembers(prev =>
+      prev.map(member =>
+        member.id === id ? { ...member, name: name.trim(), firstDayOff } : member
+      ).sort((a, b) => a.name.localeCompare(b.name))
+    );
+  }, [setTeamMembers]);
+
   const isOffToday = useCallback((member: TeamMember, date: Date): boolean => {
       const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
@@ -68,6 +76,7 @@ const App: React.FC = () => {
             teamMembers={teamMembers}
             addMember={addMember}
             removeMember={removeMember}
+            updateMember={updateMember}
           />
         </div>
       </main>
