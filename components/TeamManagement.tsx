@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { TeamMember } from '../types';
 import AddMemberForm from './AddMemberForm';
@@ -7,16 +8,16 @@ import { getNextDayOff } from '../utils/dateUtils';
 
 interface TeamManagementProps {
   teamMembers: TeamMember[];
-  addMember: (name: string, firstDayOff: Date) => void;
+  addMember: (name: string, firstDayOff: Date, birthday?: Date) => void;
   removeMember: (id: string) => void;
-  updateMember: (id: string, name: string, firstDayOff: Date) => void;
+  updateMember: (id: string, name: string, firstDayOff: Date, birthday?: Date) => void;
 }
 
 const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember, removeMember, updateMember }) => {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
 
-  const handleUpdateMember = (id: string, name: string, firstDayOff: Date) => {
-    updateMember(id, name, firstDayOff);
+  const handleUpdateMember = (id: string, name: string, firstDayOff: Date, birthday?: Date) => {
+    updateMember(id, name, firstDayOff, birthday);
     setEditingMember(null);
   };
 
@@ -34,11 +35,16 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember,
             {teamMembers.length > 0 ? (
               teamMembers.map(member => (
                 <div key={member.id} className="flex items-center justify-between bg-gray-700 p-3 rounded-md hover:bg-gray-600 transition-colors">
-                  <div>
+                  <div className="flex flex-col">
                     <p className="font-medium text-gray-100">{member.name}</p>
                     <p className="text-xs text-gray-400">
                       Próxima folga: {getNextDayOff(member).toLocaleDateString('pt-BR')}
                     </p>
+                    {member.birthday && (
+                      <p className="text-xs text-teal-400 mt-1">
+                        🎂 {new Date(member.birthday).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     <button

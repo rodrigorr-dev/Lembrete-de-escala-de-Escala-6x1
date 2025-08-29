@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { TeamMember } from '../types';
 import MemberCard from './MemberCard';
@@ -7,11 +8,18 @@ interface DailyRosterProps {
   workingToday: TeamMember[];
   offToday: TeamMember[];
   currentDate: Date;
+  teamMembers: TeamMember[];
 }
 
-const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, currentDate }) => {
+const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, currentDate, teamMembers }) => {
   const [isScheduling, setIsScheduling] = useState(false);
   const formattedDate = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'full' }).format(currentDate);
+
+  const birthdaysToday = teamMembers.filter(member => {
+     if (!member.birthday) return false;
+     const bday = new Date(member.birthday);
+     return bday.getDate() === currentDate.getDate() && bday.getMonth() === currentDate.getMonth();
+  });
 
   const handleSimulateNotification = async () => {
     if (!('Notification' in window)) {
@@ -40,15 +48,11 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
         const notificationBody = `Trabalhando: ${workingNames}\nDe Folga: ${offNames}`;
         
         try {
-          // NOTE: For notifications to work reliably when the app is in the background (especially on mobile),
-          // a Service Worker is required. This implementation uses a simple setTimeout, which may be
-          // throttled or paused by the browser if the tab is inactive.
-          // FIX: Cast notification options to 'any' to allow the 'vibrate' property.
           new Notification('📢 Lembrete de Escala 6x1', {
             body: notificationBody,
             icon: '/vite.svg',
-            vibrate: [200, 100, 200], // Vibrate to make it more noticeable on mobile
-            requireInteraction: true, // Keep notification visible until user interaction on supported platforms
+            vibrate: [200, 100, 200],
+            requireInteraction: true,
           } as any);
         } catch (e) {
           console.error('Erro ao criar notificação: ', e);
@@ -79,6 +83,12 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
           </button>
         </div>
       </div>
+
+      {birthdaysToday.length > 0 && (
+        <div className="bg-yellow-500/20 border border-yellow-500/50 text-yellow-300 p-4 rounded-lg mb-6 text-center">
+          <p className="font-bold text-lg">🎉 Feliz Aniversário, {birthdaysToday.map(m => m.name).join(' & ')}! 🎉</p>
+        </div>
+      )}
       
       <div className="space-y-6">
         <div>

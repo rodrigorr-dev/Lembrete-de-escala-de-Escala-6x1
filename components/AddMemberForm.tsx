@@ -3,21 +3,30 @@ import React, { useState } from 'react';
 import { PlusIcon } from './Icons';
 
 interface AddMemberFormProps {
-  addMember: (name: string, firstDayOff: Date) => void;
+  addMember: (name: string, firstDayOff: Date, birthday?: Date) => void;
 }
 
 const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
   const [name, setName] = useState('');
   const [firstDayOff, setFirstDayOff] = useState(new Date().toISOString().split('T')[0]);
+  const [birthday, setBirthday] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name && firstDayOff) {
-      // The date from input is string 'YYYY-MM-DD'. We need to parse it correctly, accounting for timezone.
       const dateParts = firstDayOff.split('-').map(Number);
-      const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-      addMember(name, date);
+      const fdoDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+
+      let bdayDate: Date | undefined = undefined;
+      if (birthday) {
+        const bdayParts = birthday.split('-').map(Number);
+        bdayDate = new Date(bdayParts[0], bdayParts[1] - 1, bdayParts[2]);
+      }
+      
+      addMember(name, fdoDate, bdayDate);
       setName('');
+      setFirstDayOff(new Date().toISOString().split('T')[0]);
+      setBirthday('');
     }
   };
 
@@ -43,6 +52,16 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
           value={firstDayOff}
           onChange={(e) => setFirstDayOff(e.target.value)}
           required
+          className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+      </div>
+      <div>
+        <label htmlFor="birthday" className="block text-sm font-medium text-gray-300 mb-1">Aniversário (Opcional)</label>
+        <input
+          id="birthday"
+          type="date"
+          value={birthday}
+          onChange={(e) => setBirthday(e.target.value)}
           className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
       </div>

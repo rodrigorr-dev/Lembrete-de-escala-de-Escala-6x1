@@ -23,12 +23,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
     return { month, year, firstDayOfMonth, daysInMonth };
   }, [viewDate]);
   
-  // Set view date when current date changes month or year
   React.useEffect(() => {
      if (currentDate.getMonth() !== viewDate.getMonth() || currentDate.getFullYear() !== viewDate.getFullYear()) {
          setViewDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
      }
-  }, [currentDate]);
+  }, [currentDate, viewDate]);
 
 
   const handlePrevMonth = () => {
@@ -41,16 +40,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
 
   const renderCalendarDays = () => {
     const days = [];
-    // Padding for days before the start of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push(<div key={`empty-start-${i}`} className="p-2 border border-gray-700/50 rounded-md"></div>);
     }
 
-    // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const isSelected = date.toDateString() === currentDate.toDateString();
       const isToday = date.toDateString() === new Date().toDateString();
+
+      const birthdaysToday = teamMembers.filter(member => {
+         if (!member.birthday) return false;
+         const bday = new Date(member.birthday);
+         return bday.getDate() === date.getDate() && bday.getMonth() === date.getMonth();
+      });
 
       let workingCount = 0;
       let offCount = 0;
@@ -64,15 +67,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
         });
       }
       
-      const dayClasses = `p-2 border text-left border-gray-700/50 rounded-md cursor-pointer flex flex-col items-start justify-start aspect-square transition-colors duration-200 
+      const dayClasses = `relative p-2 border text-left border-gray-700/50 rounded-md cursor-pointer flex flex-col items-start justify-start aspect-square transition-colors duration-200 
         ${isSelected ? 'bg-teal-500/30 border-teal-500 ring-2 ring-teal-500' : 'hover:bg-gray-700'}
         ${isToday && !isSelected ? 'bg-gray-600/50' : ''}`;
 
       days.push(
         <button key={day} onClick={() => setCurrentDate(date)} className={dayClasses} aria-label={`Ver escala do dia ${day}`}>
-          <span className={`font-bold ${isToday ? 'text-teal-400' : ''}`}>{day}</span>
+          <div className="flex justify-between w-full items-center">
+            <span className={`font-bold ${isToday ? 'text-teal-400' : ''}`}>{day}</span>
+            {birthdaysToday.length > 0 && (
+                <div className="text-sm" title={`Aniversário de ${birthdaysToday.map(m => m.name).join(', ')}`}>🎂</div>
+            )}
+          </div>
           {teamMembers.length > 0 && (
-             <div className="text-xs mt-2 space-y-1 text-left w-full">
+             <div className="text-xs mt-auto space-y-1 text-left w-full">
                 <div className="flex items-center gap-1" title="Trabalhando">
                     <span className="text-green-400">✅</span>
                     <span className="font-mono">{workingCount}</span>
@@ -87,7 +95,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
       );
     }
     
-     // Padding for days after the end of the month
     const totalCells = firstDayOfMonth + daysInMonth;
     const remainingCells = (7 - (totalCells % 7)) % 7;
     for (let i = 0; i < remainingCells; i++) {

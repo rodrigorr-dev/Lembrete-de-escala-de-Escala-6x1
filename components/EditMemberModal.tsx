@@ -4,25 +4,34 @@ import { TeamMember } from '../types';
 
 interface EditMemberModalProps {
   member: TeamMember;
-  onUpdate: (id: string, name: string, firstDayOff: Date) => void;
+  onUpdate: (id: string, name: string, firstDayOff: Date, birthday?: Date) => void;
   onClose: () => void;
 }
 
 const EditMemberModal: React.FC<EditMemberModalProps> = ({ member, onUpdate, onClose }) => {
   const [name, setName] = useState(member.name);
   const [firstDayOff, setFirstDayOff] = useState(new Date(member.firstDayOff).toISOString().split('T')[0]);
+  const [birthday, setBirthday] = useState(member.birthday ? new Date(member.birthday).toISOString().split('T')[0] : '');
 
   useEffect(() => {
     setName(member.name);
     setFirstDayOff(new Date(member.firstDayOff).toISOString().split('T')[0]);
+    setBirthday(member.birthday ? new Date(member.birthday).toISOString().split('T')[0] : '');
   }, [member]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && firstDayOff) {
       const dateParts = firstDayOff.split('-').map(Number);
-      const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-      onUpdate(member.id, name, date);
+      const fdoDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+
+      let bdayDate: Date | undefined = undefined;
+      if (birthday) {
+        const bdayParts = birthday.split('-').map(Number);
+        bdayDate = new Date(bdayParts[0], bdayParts[1] - 1, bdayParts[2]);
+      }
+      
+      onUpdate(member.id, name, fdoDate, bdayDate);
     }
   };
   
@@ -62,6 +71,16 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({ member, onUpdate, onC
               value={firstDayOff}
               onChange={(e) => setFirstDayOff(e.target.value)}
               required
+              className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
+          <div>
+            <label htmlFor="edit-birthday" className="block text-sm font-medium text-gray-300 mb-1">Aniversário (Opcional)</label>
+            <input
+              id="edit-birthday"
+              type="date"
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
               className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
