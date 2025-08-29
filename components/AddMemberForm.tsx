@@ -1,21 +1,26 @@
 
 import React, { useState } from 'react';
 import { PlusIcon } from './Icons';
+import { ScheduleType } from '../types';
 
 interface AddMemberFormProps {
-  addMember: (name: string, firstDayOff: Date, birthday?: Date) => void;
+  addMember: (name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => void;
 }
 
 const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
   const [name, setName] = useState('');
+  const [scheduleType, setScheduleType] = useState<ScheduleType>('6x1');
   const [firstDayOff, setFirstDayOff] = useState(new Date().toISOString().split('T')[0]);
   const [birthday, setBirthday] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && firstDayOff) {
-      const dateParts = firstDayOff.split('-').map(Number);
-      const fdoDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+    if (name) {
+      let fdoDate: Date | undefined = undefined;
+      if (scheduleType === '6x1' && firstDayOff) {
+        const dateParts = firstDayOff.split('-').map(Number);
+        fdoDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+      }
 
       let bdayDate: Date | undefined = undefined;
       if (birthday) {
@@ -23,12 +28,15 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
         bdayDate = new Date(bdayParts[0], bdayParts[1] - 1, bdayParts[2]);
       }
       
-      addMember(name, fdoDate, bdayDate);
+      addMember(name, scheduleType, fdoDate, bdayDate);
       setName('');
+      setScheduleType('6x1');
       setFirstDayOff(new Date().toISOString().split('T')[0]);
       setBirthday('');
     }
   };
+
+  const isSubmitDisabled = !name || (scheduleType === '6x1' && !firstDayOff);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -44,17 +52,31 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
           className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
       </div>
-      <div>
-        <label htmlFor="first-day-off" className="block text-sm font-medium text-gray-300 mb-1">Primeiro Dia de Folga</label>
-        <input
-          id="first-day-off"
-          type="date"
-          value={firstDayOff}
-          onChange={(e) => setFirstDayOff(e.target.value)}
-          required
+       <div>
+        <label htmlFor="schedule-type" className="block text-sm font-medium text-gray-300 mb-1">Tipo de Escala</label>
+        <select
+          id="schedule-type"
+          value={scheduleType}
+          onChange={(e) => setScheduleType(e.target.value as ScheduleType)}
           className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-        />
+        >
+          <option value="6x1">Escala 6x1</option>
+          <option value="fixedSundayOff">Folga Fixa no Domingo</option>
+        </select>
       </div>
+      {scheduleType === '6x1' && (
+        <div>
+          <label htmlFor="first-day-off" className="block text-sm font-medium text-gray-300 mb-1">Primeiro Dia de Folga</label>
+          <input
+            id="first-day-off"
+            type="date"
+            value={firstDayOff}
+            onChange={(e) => setFirstDayOff(e.target.value)}
+            required={scheduleType === '6x1'}
+            className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+          />
+        </div>
+      )}
       <div>
         <label htmlFor="birthday" className="block text-sm font-medium text-gray-300 mb-1">Aniversário (Opcional)</label>
         <input
@@ -68,7 +90,7 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
       <button 
         type="submit" 
         className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300 disabled:bg-gray-500"
-        disabled={!name || !firstDayOff}
+        disabled={isSubmitDisabled}
       >
         <PlusIcon />
         Adicionar Membro

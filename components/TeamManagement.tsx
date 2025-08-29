@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { TeamMember } from '../types';
+import { TeamMember, ScheduleType } from '../types';
 import AddMemberForm from './AddMemberForm';
 import EditMemberModal from './EditMemberModal';
 import { TrashIcon, EditIcon } from './Icons';
@@ -8,16 +8,16 @@ import { getNextDayOff } from '../utils/dateUtils';
 
 interface TeamManagementProps {
   teamMembers: TeamMember[];
-  addMember: (name: string, firstDayOff: Date, birthday?: Date) => void;
+  addMember: (name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => void;
   removeMember: (id: string) => void;
-  updateMember: (id: string, name: string, firstDayOff: Date, birthday?: Date) => void;
+  updateMember: (id: string, name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => void;
 }
 
 const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember, removeMember, updateMember }) => {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
 
-  const handleUpdateMember = (id: string, name: string, firstDayOff: Date, birthday?: Date) => {
-    updateMember(id, name, firstDayOff, birthday);
+  const handleUpdateMember = (id: string, name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => {
+    updateMember(id, name, scheduleType, firstDayOff, birthday);
     setEditingMember(null);
   };
 
@@ -37,9 +37,13 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember,
                 <div key={member.id} className="flex items-center justify-between bg-gray-700 p-3 rounded-md hover:bg-gray-600 transition-colors">
                   <div className="flex flex-col">
                     <p className="font-medium text-gray-100">{member.name}</p>
-                    <p className="text-xs text-gray-400">
-                      Próxima folga: {getNextDayOff(member).toLocaleDateString('pt-BR')}
-                    </p>
+                     {member.scheduleType === 'fixedSundayOff' ? (
+                       <p className="text-xs text-gray-400">Folga fixa aos Domingos</p>
+                    ) : (
+                       <p className="text-xs text-gray-400">
+                         Próxima folga: {getNextDayOff(member).toLocaleDateString('pt-BR')}
+                       </p>
+                    )}
                     {member.birthday && (
                       <p className="text-xs text-teal-400 mt-1">
                         🎂 {new Date(member.birthday).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
