@@ -48,7 +48,7 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
         const notificationBody = `Trabalhando: ${workingNames}\nDe Folga: ${offNames}`;
         
         try {
-          new Notification('📢 Lembrete de Escala 6x1', {
+          new Notification('📢 Lembrete de Escala 5x1', {
             body: notificationBody,
             icon: '/vite.svg',
             vibrate: [200, 100, 200],

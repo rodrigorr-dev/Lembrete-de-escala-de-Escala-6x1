@@ -16,7 +16,7 @@ export const getNextDayOff = (member: TeamMember): Date => {
     return nextSunday;
   }
   
-  // '6x1' logic
+  // '5x1' logic
   if (!member.firstDayOff) {
       // This case should be prevented by UI logic
       // but return a distant date as a fallback.

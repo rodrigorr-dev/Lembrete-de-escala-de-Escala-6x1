@@ -27,7 +27,7 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({ member, onUpdate, onC
     e.preventDefault();
     if (name.trim()) {
       let fdoDate: Date | undefined = undefined;
-      if (scheduleType === '6x1' && firstDayOff) {
+      if (scheduleType === '5x1' && firstDayOff) {
         const dateParts = firstDayOff.split('-').map(Number);
         fdoDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
       }
@@ -48,7 +48,7 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({ member, onUpdate, onC
     }
   };
 
-  const isSubmitDisabled = !name.trim() || (scheduleType === '6x1' && !firstDayOff);
+  const isSubmitDisabled = !name.trim() || (scheduleType === '5x1' && !firstDayOff);
 
   return (
     <div 
@@ -80,11 +80,11 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({ member, onUpdate, onC
               onChange={(e) => setScheduleType(e.target.value as ScheduleType)}
               className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
-              <option value="6x1">Escala 6x1</option>
+              <option value="5x1">Escala 5x1</option>
               <option value="fixedSundayOff">Folga Fixa no Domingo</option>
             </select>
           </div>
-          {scheduleType === '6x1' && (
+          {scheduleType === '5x1' && (
             <div>
               <label htmlFor="edit-first-day-off" className="block text-sm font-medium text-gray-300 mb-1">Primeiro Dia de Folga</label>
               <input
@@ -92,7 +92,7 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({ member, onUpdate, onC
                 type="date"
                 value={firstDayOff}
                 onChange={(e) => setFirstDayOff(e.target.value)}
-                required={scheduleType === '6x1'}
+                required={scheduleType === '5x1'}
                 className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>

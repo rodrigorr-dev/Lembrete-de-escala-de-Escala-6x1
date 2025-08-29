@@ -9,7 +9,7 @@ interface AddMemberFormProps {
 
 const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
   const [name, setName] = useState('');
-  const [scheduleType, setScheduleType] = useState<ScheduleType>('6x1');
+  const [scheduleType, setScheduleType] = useState<ScheduleType>('5x1');
   const [firstDayOff, setFirstDayOff] = useState(new Date().toISOString().split('T')[0]);
   const [birthday, setBirthday] = useState('');
 
@@ -17,7 +17,7 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
     e.preventDefault();
     if (name) {
       let fdoDate: Date | undefined = undefined;
-      if (scheduleType === '6x1' && firstDayOff) {
+      if (scheduleType === '5x1' && firstDayOff) {
         const dateParts = firstDayOff.split('-').map(Number);
         fdoDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
       }
@@ -30,13 +30,13 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
       
       addMember(name, scheduleType, fdoDate, bdayDate);
       setName('');
-      setScheduleType('6x1');
+      setScheduleType('5x1');
       setFirstDayOff(new Date().toISOString().split('T')[0]);
       setBirthday('');
     }
   };
 
-  const isSubmitDisabled = !name || (scheduleType === '6x1' && !firstDayOff);
+  const isSubmitDisabled = !name || (scheduleType === '5x1' && !firstDayOff);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -60,11 +60,11 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
           onChange={(e) => setScheduleType(e.target.value as ScheduleType)}
           className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
         >
-          <option value="6x1">Escala 6x1</option>
+          <option value="5x1">Escala 5x1</option>
           <option value="fixedSundayOff">Folga Fixa no Domingo</option>
         </select>
       </div>
-      {scheduleType === '6x1' && (
+      {scheduleType === '5x1' && (
         <div>
           <label htmlFor="first-day-off" className="block text-sm font-medium text-gray-300 mb-1">Primeiro Dia de Folga</label>
           <input
@@ -72,7 +72,7 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ addMember }) => {
             type="date"
             value={firstDayOff}
             onChange={(e) => setFirstDayOff(e.target.value)}
-            required={scheduleType === '6x1'}
+            required={scheduleType === '5x1'}
             className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>

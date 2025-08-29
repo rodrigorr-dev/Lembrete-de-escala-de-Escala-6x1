@@ -1,5 +1,5 @@
 
-export type ScheduleType = '6x1' | 'fixedSundayOff';
+export type ScheduleType = '5x1' | 'fixedSundayOff';
 
 export interface TeamMember {
   id: string;
