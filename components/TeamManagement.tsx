@@ -1,23 +1,24 @@
 
 import React, { useState } from 'react';
-import { TeamMember, ScheduleType } from '../types';
+import { TeamMember, ScheduleType, Vacation } from '../types';
 import AddMemberForm from './AddMemberForm';
 import EditMemberModal from './EditMemberModal';
 import { TrashIcon, EditIcon } from './Icons';
 import { getNextDayOff } from '../utils/dateUtils';
+import VacationList from './VacationList';
 
 interface TeamManagementProps {
   teamMembers: TeamMember[];
   addMember: (name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => void;
   removeMember: (id: string) => void;
-  updateMember: (id: string, name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => void;
+  updateMember: (id: string, name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date, vacation?: Vacation[]) => void;
 }
 
 const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember, removeMember, updateMember }) => {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
 
-  const handleUpdateMember = (id: string, name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => {
-    updateMember(id, name, scheduleType, firstDayOff, birthday);
+  const handleUpdateMember = (id: string, name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date, vacation?: Vacation[]) => {
+    updateMember(id, name, scheduleType, firstDayOff, birthday, vacation);
     setEditingMember(null);
   };
 
@@ -77,6 +78,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember,
             )}
           </div>
         </div>
+        <VacationList teamMembers={teamMembers} />
       </div>
       {editingMember && (
         <EditMemberModal

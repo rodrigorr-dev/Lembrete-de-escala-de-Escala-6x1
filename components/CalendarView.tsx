@@ -8,9 +8,10 @@ interface CalendarViewProps {
   setCurrentDate: (date: Date) => void;
   teamMembers: TeamMember[];
   isOffToday: (member: TeamMember, date: Date) => boolean;
+  isOnVacation: (member: TeamMember, date: Date) => boolean;
 }
 
-const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate, teamMembers, isOffToday }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate, teamMembers, isOffToday, isOnVacation }) => {
   const [viewDate, setViewDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
 
   const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -24,10 +25,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
   }, [viewDate]);
   
   React.useEffect(() => {
+     // This effect ensures that if the selected date (currentDate) changes from an external action,
+     // the calendar view navigates to that month.
      if (currentDate.getMonth() !== viewDate.getMonth() || currentDate.getFullYear() !== viewDate.getFullYear()) {
          setViewDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
      }
-  }, [currentDate, viewDate]);
+    // We intentionally omit `viewDate` from the dependency array. Including it would cause this
+    // effect to run after the user clicks the next/prev month buttons, incorrectly resetting
+    // the view back to the month of the `currentDate`. This effect should only trigger
+    // when `currentDate` itself changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDate]);
 
 
   const handlePrevMonth = () => {
@@ -54,12 +62,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
          const bday = new Date(member.birthday);
          return bday.getDate() === date.getDate() && bday.getMonth() === date.getMonth();
       });
+      
+      const vacationingToday = teamMembers.filter(member => isOnVacation(member, date));
 
       let workingCount = 0;
       let offCount = 0;
       if (teamMembers.length > 0) {
         teamMembers.forEach(member => {
-          if (isOffToday(member, date)) {
+          if (isOnVacation(member, date)) {
+            // Handled by vacationingToday, no need to count here for the summary dots
+          } else if (isOffToday(member, date)) {
             offCount++;
           } else {
             workingCount++;
@@ -75,9 +87,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
         <button key={day} onClick={() => setCurrentDate(date)} className={dayClasses} aria-label={`Ver escala do dia ${day}`}>
           <div className="flex justify-between w-full items-center">
             <span className={`font-bold ${isToday ? 'text-teal-400' : ''}`}>{day}</span>
-            {birthdaysToday.length > 0 && (
-                <div className="text-sm" title={`Aniversário de ${birthdaysToday.map(m => m.name).join(', ')}`}>🎂</div>
-            )}
+            <div className="flex items-center gap-1">
+                {birthdaysToday.length > 0 && (
+                    <div className="text-sm" title={`Aniversário de ${birthdaysToday.map(m => m.name).join(', ')}`}>🎂</div>
+                )}
+                 {vacationingToday.length > 0 && (
+                    <div className="text-sm" title={`Férias de ${vacationingToday.map(m => m.name).join(', ')}`}>✈️</div>
+                )}
+            </div>
           </div>
           {teamMembers.length > 0 && (
              <div className="text-xs mt-auto space-y-1 text-left w-full">
@@ -87,7 +104,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
                 </div>
                 <div className="flex items-center gap-1" title="De Folga">
                      <span className="text-blue-400">🏖️</span>
-                     <span className="font-mono">{offCount}</span>
+                     <span className="font-mono">{offCount + vacationingToday.length}</span>
                 </div>
             </div>
           )}

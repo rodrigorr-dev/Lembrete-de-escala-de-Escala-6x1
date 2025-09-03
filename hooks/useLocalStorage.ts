@@ -11,7 +11,7 @@ export function useLocalStorage<T,>(key: string, initialValue: T): [T, React.Dis
       if(item) {
         // Revive dates
         return JSON.parse(item, (key, value) => {
-            if ((key === 'firstDayOff' || key === 'birthday') && typeof value === 'string' && value) {
+            if ((key === 'firstDayOff' || key === 'birthday' || key === 'start' || key === 'end') && typeof value === 'string' && value) {
                 return new Date(value);
             }
             return value;

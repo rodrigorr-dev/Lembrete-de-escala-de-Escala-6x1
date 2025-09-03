@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { TeamMember } from '../types';
 
 interface MemberCardProps {
   member: TeamMember;
-  status: 'working' | 'off';
+  status: 'working' | 'off' | 'vacation';
   nextDayOff?: string;
 }
 
@@ -11,7 +12,9 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, status, nextDayOff }) =
   const baseClasses = "p-3 rounded-lg shadow-md text-center transition-all duration-300 flex flex-col justify-center min-h-[70px]";
   const statusClasses = status === 'working'
     ? "bg-green-500/10 text-green-300 border border-green-500/30"
-    : "bg-blue-500/10 text-blue-300 border border-blue-500/30";
+    : status === 'off' 
+    ? "bg-blue-500/10 text-blue-300 border border-blue-500/30"
+    : "bg-yellow-500/10 text-yellow-300 border border-yellow-500/30";
 
   return (
     <div className={`${baseClasses} ${statusClasses}`}>

@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import { TeamMember, ScheduleType } from './types';
+import { TeamMember, ScheduleType, Vacation } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import Header from './components/Header';
 import DailyRoster from './components/DailyRoster';
@@ -12,19 +12,21 @@ const initialTeam: TeamMember[] = [
     id: 'c7c2b0d8-1c3f-4e6a-9f8a-3b5d1e9c2a4f',
     name: 'Adriano',
     scheduleType: '5x1',
-    firstDayOff: new Date(2025, 7, 5), // August is month 7
+    firstDayOff: new Date(2025, 7, 5),
     birthday: new Date(1900, 3, 13), // 13/abr
+    vacation: [{ start: new Date(2025, 9, 1), end: new Date(2025, 9, 31) }], // Outubro
   },
   {
     id: 'f2a1b3e9-4d5c-6b7a-8c9d-0e1f2a3b4c5d',
     name: 'Alan',
     scheduleType: '5x1',
     firstDayOff: new Date(2025, 7, 2),
-    birthday: new Date(1900, 3, 13), // 13/abr
+    birthday: new Date(1900, 7, 2), // 02/ago
+    vacation: [{ start: new Date(2025, 2, 1), end: new Date(2025, 2, 31) }], // Março
   },
   {
     id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
-    name: 'Antonio Rodrigo',
+    name: 'Antonio Rodrigo', // Mapping from Antonio Marcos in the image
     scheduleType: 'fixedSundayOff',
     birthday: new Date(1900, 11, 26), // 26/dez
   },
@@ -33,41 +35,52 @@ const initialTeam: TeamMember[] = [
     name: 'Manuel',
     scheduleType: '5x1',
     firstDayOff: new Date(2025, 7, 1),
-    birthday: new Date(1900, 6, 29), // 29/jul
+    birthday: new Date(1900, 10, 25), // 25/nov
+    vacation: [{ start: new Date(2025, 11, 1), end: new Date(2025, 11, 31) }], // Dezembro
   },
   {
     id: 'a9d8c7b6-5e4f-3d2c-1b0a-9f8e7d6c5b4a',
     name: 'Marcos',
     scheduleType: '5x1',
     firstDayOff: new Date(2025, 7, 4),
-    birthday: new Date(1900, 7, 2), // 02/ago
+    birthday: new Date(1900, 10, 9), // 09/nov
   },
   {
     id: 'a2c3b8f9-4d5e-5b7c-9c1f-0e3a9d8b5c2d',
     name: 'Mário',
     scheduleType: '5x1',
     firstDayOff: new Date(2025, 7, 6),
-    birthday: new Date(1900, 10, 25), // 25/nov
+    birthday: new Date(1900, 8, 2), // 02/set
+    vacation: [{ start: new Date(2025, 3, 1), end: new Date(2025, 3, 30) }], // Abril
   },
   {
     id: 'e1d2c3b4-5a6f-7e8d-9c0b-1a2f3e4d5c6b',
     name: 'Mauro',
     scheduleType: '5x1',
     firstDayOff: new Date(2025, 7, 3),
-    birthday: new Date(1900, 8, 2), // 02/set
+    birthday: new Date(1900, 4, 6), // 06/mai
+    vacation: [{ start: new Date(2025, 5, 1), end: new Date(2025, 5, 30) }], // Junho
+  },
+  {
+    id: '4b6d3a2c-1e9f-8d7c-6b5a-4f3e2d1c0b9a',
+    name: 'Pedro Henrique',
+    scheduleType: '5x1',
+    firstDayOff: new Date(2025, 7, 7),
+    birthday: new Date(1900, 4, 7), // 07/mai
   },
   {
     id: 'd1b2a9e8-3c4f-4a6b-8b0e-9d2f8c7e4a1b',
     name: 'Valci',
     scheduleType: '5x1',
     firstDayOff: new Date(2025, 7, 3),
-    birthday: new Date(1900, 10, 9), // 09/nov
+    birthday: new Date(1900, 6, 29), // 29/jul
+    vacation: [{ start: new Date(2025, 10, 1), end: new Date(2025, 10, 30) }], // Novembro
   },
 ];
 
 const App: React.FC = () => {
   const [teamMembers, setTeamMembers] = useLocalStorage<TeamMember[]>('teamMembers', initialTeam);
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 7, 24));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const dailyRosterRef = useRef<HTMLDivElement>(null);
 
   const addMember = useCallback((name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => {
@@ -83,6 +96,7 @@ const App: React.FC = () => {
       scheduleType,
       firstDayOff: scheduleType === '5x1' ? firstDayOff : undefined,
       birthday,
+      vacation: [],
     };
     setTeamMembers(prev => [...prev, newMember].sort((a, b) => a.name.localeCompare(b.name)));
   }, [setTeamMembers]);
@@ -91,7 +105,7 @@ const App: React.FC = () => {
     setTeamMembers(prev => prev.filter(member => member.id !== id));
   }, [setTeamMembers]);
   
-  const updateMember = useCallback((id: string, name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => {
+  const updateMember = useCallback((id: string, name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date, vacation?: Vacation[]) => {
     if (scheduleType === '5x1' && !firstDayOff) {
         alert("Para a escala 5x1, a data da primeira folga é obrigatória.");
         return;
@@ -103,7 +117,8 @@ const App: React.FC = () => {
             name: name.trim(), 
             scheduleType, 
             firstDayOff: scheduleType === '5x1' ? firstDayOff : undefined,
-            birthday 
+            birthday,
+            vacation
         } : member
       ).sort((a, b) => a.name.localeCompare(b.name))
     );
@@ -134,19 +149,40 @@ const App: React.FC = () => {
       return diffDays % 6 === 0;
   }, []);
 
-  const { workingToday, offToday } = useMemo(() => {
+  const isOnVacation = useCallback((member: TeamMember, date: Date): boolean => {
+    if (!member.vacation || member.vacation.length === 0) return false;
+    
+    const checkTime = new Date(date);
+    checkTime.setHours(0, 0, 0, 0);
+    const checkTimeMs = checkTime.getTime();
+
+    return member.vacation.some(v => {
+        if (!v.start || !v.end) return false;
+        const startTime = new Date(v.start);
+        startTime.setHours(0, 0, 0, 0);
+        const endTime = new Date(v.end);
+        endTime.setHours(0, 0, 0, 0);
+        
+        return checkTimeMs >= startTime.getTime() && checkTimeMs <= endTime.getTime();
+    });
+  }, []);
+
+  const { workingToday, offToday, onVacationToday } = useMemo(() => {
     const working: TeamMember[] = [];
     const off: TeamMember[] = [];
+    const vacation: TeamMember[] = [];
 
     teamMembers.forEach(member => {
-      if (isOffToday(member, currentDate)) {
+      if (isOnVacation(member, currentDate)) {
+        vacation.push(member);
+      } else if (isOffToday(member, currentDate)) {
         off.push(member);
       } else {
         working.push(member);
       }
     });
-    return { workingToday: working, offToday: off };
-  }, [teamMembers, currentDate, isOffToday]);
+    return { workingToday: working, offToday: off, onVacationToday: vacation };
+  }, [teamMembers, currentDate, isOffToday, isOnVacation]);
 
   const handleDateSelect = useCallback((date: Date) => {
     setCurrentDate(date);
@@ -166,11 +202,13 @@ const App: React.FC = () => {
             setCurrentDate={handleDateSelect}
             teamMembers={teamMembers}
             isOffToday={isOffToday}
+            isOnVacation={isOnVacation}
            />
            <div ref={dailyRosterRef}>
             <DailyRoster 
               workingToday={workingToday}
               offToday={offToday}
+              onVacationToday={onVacationToday}
               currentDate={currentDate}
               teamMembers={teamMembers}
             />

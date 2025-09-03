@@ -7,11 +7,12 @@ import { getNextDayOff } from '../utils/dateUtils';
 interface DailyRosterProps {
   workingToday: TeamMember[];
   offToday: TeamMember[];
+  onVacationToday: TeamMember[];
   currentDate: Date;
   teamMembers: TeamMember[];
 }
 
-const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, currentDate, teamMembers }) => {
+const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, onVacationToday, currentDate, teamMembers }) => {
   const [isScheduling, setIsScheduling] = useState(false);
   const formattedDate = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'full' }).format(currentDate);
 
@@ -110,7 +111,20 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ workingToday, offToday, curre
             <p className="text-gray-400 italic">Nenhum membro da equipe trabalhando hoje.</p>
           )}
         </div>
-
+        <div>
+          <h3 className="text-xl font-semibold mb-4 text-yellow-400 border-b-2 border-yellow-400/30 pb-2">
+            ✈️ De Férias ({onVacationToday.length})
+          </h3>
+          {onVacationToday.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {onVacationToday.map(member => (
+                <MemberCard key={member.id} member={member} status="vacation" />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 italic">Ninguém está de férias hoje.</p>
+          )}
+        </div>
         <div>
           <h3 className="text-xl font-semibold mb-4 text-blue-400 border-b-2 border-blue-400/30 pb-2">
             🏖️ De Folga Hoje ({offToday.length})
