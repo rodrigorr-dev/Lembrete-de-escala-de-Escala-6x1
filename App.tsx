@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { TeamMember, ScheduleType, Vacation, Occurrence } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -91,29 +90,27 @@ const App: React.FC = () => {
   const dailyRosterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (activeTab === 'occurrences') {
-      const fetchOccurrences = async () => {
-        // Não busca se a URL não estiver configurada
-        // FIX: Cast SCRIPT_URL to string to avoid a TypeScript error comparing two different literal types. This preserves the developer setup check.
-        if ((SCRIPT_URL as string) === 'COLE_A_URL_DO_SEU_APP_DA_WEB_AQUI') {
-          setErrorOccurrences('Por favor, siga o arquivo INSTRUCTIONS.md para configurar a conexão com a Planilha Google.');
-          setIsLoadingOccurrences(false);
-          return;
-        }
-        try {
-          setIsLoadingOccurrences(true);
-          setErrorOccurrences(null);
-          const data = await getOccurrences();
-          setOccurrences(data);
-        } catch (err) {
-          setErrorOccurrences(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido ao buscar as ocorrências.');
-        } finally {
-          setIsLoadingOccurrences(false);
-        }
-      };
-      fetchOccurrences();
-    }
-  }, [activeTab]);
+    const fetchOccurrences = async () => {
+      // Não busca se a URL não estiver configurada
+      // FIX: Cast SCRIPT_URL to string to avoid a TypeScript error comparing two different literal types. This preserves the developer setup check.
+      if ((SCRIPT_URL as string) === 'COLE_A_URL_DO_SEU_APP_DA_WEB_AQUI') {
+        setErrorOccurrences('Por favor, siga o arquivo INSTRUCTIONS.md para configurar a conexão com a Planilha Google.');
+        setIsLoadingOccurrences(false);
+        return;
+      }
+      try {
+        setIsLoadingOccurrences(true);
+        setErrorOccurrences(null);
+        const data = await getOccurrences();
+        setOccurrences(data);
+      } catch (err) {
+        setErrorOccurrences(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido ao buscar as ocorrências.');
+      } finally {
+        setIsLoadingOccurrences(false);
+      }
+    };
+    fetchOccurrences();
+  }, []);
 
   const addMember = useCallback((name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => {
     if (name.trim() === '') return;
