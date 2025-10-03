@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { TeamMember, ScheduleType, Vacation, Occurrence } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import Header from './components/Header';
@@ -6,6 +7,8 @@ import DailyRoster from './components/DailyRoster';
 import TeamManagement from './components/TeamManagement';
 import CalendarView from './components/CalendarView';
 import OccurrencesLog from './components/OccurrencesLog';
+import { getOccurrences, addOccurrence as addOccurrenceService, removeOccurrence as removeOccurrenceService } from './services/googleSheetService';
+import { SCRIPT_URL } from './config';
 
 const initialTeam: TeamMember[] = [
   {
@@ -14,7 +17,7 @@ const initialTeam: TeamMember[] = [
     scheduleType: '5x1',
     firstDayOff: new Date(2025, 7, 5),
     birthday: new Date(1900, 3, 13), // 13/abr
-    vacation: [{ start: new Date(2025, 9, 1), end: new Date(2025, 9, 31) }], // Outubro
+    vacation: [{ start: new Date(2025, 9, 13), end: new Date(2025, 9, 31) }], // Outubro
   },
   {
     id: 'f2a1b3e9-4d5c-6b7a-8c9d-0e1f2a3b4c5d',
@@ -80,10 +83,37 @@ const initialTeam: TeamMember[] = [
 
 const App: React.FC = () => {
   const [teamMembers, setTeamMembers] = useLocalStorage<TeamMember[]>('teamMembers', initialTeam);
-  const [occurrences, setOccurrences] = useLocalStorage<Occurrence[]>('occurrences', []);
+  const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
+  const [isLoadingOccurrences, setIsLoadingOccurrences] = useState(true);
+  const [errorOccurrences, setErrorOccurrences] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState<'schedule' | 'occurrences'>('schedule');
   const dailyRosterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (activeTab === 'occurrences') {
+      const fetchOccurrences = async () => {
+        // Não busca se a URL não estiver configurada
+        // FIX: Cast SCRIPT_URL to string to avoid a TypeScript error comparing two different literal types. This preserves the developer setup check.
+        if ((SCRIPT_URL as string) === 'COLE_A_URL_DO_SEU_APP_DA_WEB_AQUI') {
+          setErrorOccurrences('Por favor, siga o arquivo INSTRUCTIONS.md para configurar a conexão com a Planilha Google.');
+          setIsLoadingOccurrences(false);
+          return;
+        }
+        try {
+          setIsLoadingOccurrences(true);
+          setErrorOccurrences(null);
+          const data = await getOccurrences();
+          setOccurrences(data);
+        } catch (err) {
+          setErrorOccurrences(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido ao buscar as ocorrências.');
+        } finally {
+          setIsLoadingOccurrences(false);
+        }
+      };
+      fetchOccurrences();
+    }
+  }, [activeTab]);
 
   const addMember = useCallback((name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => {
     if (name.trim() === '') return;
@@ -126,18 +156,15 @@ const App: React.FC = () => {
     );
   }, [setTeamMembers]);
 
-  const addOccurrence = useCallback((date: Date, description: string) => {
-    const newOccurrence: Occurrence = {
-      id: crypto.randomUUID(),
-      date,
-      description,
-    };
+  const addOccurrence = useCallback(async (date: Date, description: string): Promise<void> => {
+    const newOccurrence = await addOccurrenceService(date, description);
     setOccurrences(prev => [...prev, newOccurrence]);
-  }, [setOccurrences]);
+  }, []);
 
-  const removeOccurrence = useCallback((id: string) => {
+  const removeOccurrence = useCallback(async (id: string): Promise<void> => {
+    await removeOccurrenceService(id);
     setOccurrences(prev => prev.filter(occurrence => occurrence.id !== id));
-  }, [setOccurrences]);
+  }, []);
 
   const isOffToday = useCallback((member: TeamMember, date: Date): boolean => {
       if (member.scheduleType === 'fixedSundayOff') {
@@ -276,11 +303,20 @@ const App: React.FC = () => {
 
           {activeTab === 'occurrences' && (
              <div className="max-w-4xl mx-auto">
-                <OccurrencesLog
-                    occurrences={occurrences}
-                    addOccurrence={addOccurrence}
-                    removeOccurrence={removeOccurrence}
-                />
+                {isLoadingOccurrences && <p className="text-center text-gray-300 py-8">Carregando ocorrências da sua Planilha Google...</p>}
+                {errorOccurrences && (
+                  <div className="text-center bg-red-900/50 border border-red-500 text-red-300 p-4 rounded-lg">
+                    <p className="font-bold">Ocorreu um Erro</p>
+                    <p className="mt-2 text-sm">{errorOccurrences}</p>
+                  </div>
+                )}
+                {!isLoadingOccurrences && !errorOccurrences && (
+                    <OccurrencesLog
+                        occurrences={occurrences}
+                        addOccurrence={addOccurrence}
+                        removeOccurrence={removeOccurrence}
+                    />
+                )}
              </div>
           )}
         </div>

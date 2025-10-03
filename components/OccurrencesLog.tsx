@@ -4,26 +4,46 @@ import { PlusIcon, TrashIcon } from './Icons';
 
 interface OccurrencesLogProps {
   occurrences: Occurrence[];
-  addOccurrence: (date: Date, description: string) => void;
-  removeOccurrence: (id: string) => void;
+  addOccurrence: (date: Date, description: string) => Promise<void>;
+  removeOccurrence: (id: string) => Promise<void>;
 }
 
 const OccurrencesLog: React.FC<OccurrencesLogProps> = ({ occurrences, addOccurrence, removeOccurrence }) => {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (description.trim() && date) {
-      const dateParts = date.split('-').map(Number);
-      const occurrenceDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-      addOccurrence(occurrenceDate, description.trim());
-      setDescription('');
-      setDate(new Date().toISOString().split('T')[0]);
+    if (description.trim() && date && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        const dateParts = date.split('-').map(Number);
+        const occurrenceDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        await addOccurrence(occurrenceDate, description.trim());
+        setDescription('');
+        setDate(new Date().toISOString().split('T')[0]);
+      } catch (error) {
+        console.error("Falha ao adicionar ocorrência:", error);
+        alert(`Não foi possível adicionar a ocorrência. Verifique sua conexão ou a configuração da planilha.\n\nDetalhes: ${error instanceof Error ? error.message : String(error)}`);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const isSubmitDisabled = !description.trim() || !date;
+  const handleRemove = async (id: string) => {
+    if (confirm('Tem certeza que deseja remover esta ocorrência? A ação não pode ser desfeita.')) {
+      try {
+        await removeOccurrence(id);
+      } catch (error) {
+        console.error("Falha ao remover ocorrência:", error);
+        alert(`Não foi possível remover a ocorrência.\n\nDetalhes: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  };
+
+  const isSubmitDisabled = !description.trim() || !date || isSubmitting;
   
   const sortedOccurrences = [...occurrences].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -57,11 +77,11 @@ const OccurrencesLog: React.FC<OccurrencesLogProps> = ({ occurrences, addOccurre
         </div>
         <button
           type="submit"
-          className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300 disabled:bg-gray-500"
+          className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300 disabled:bg-gray-500 disabled:cursor-wait"
           disabled={isSubmitDisabled}
         >
           <PlusIcon />
-          Adicionar Ocorrência
+          {isSubmitting ? 'Adicionando...' : 'Adicionar Ocorrência'}
         </button>
       </form>
 
@@ -76,11 +96,7 @@ const OccurrencesLog: React.FC<OccurrencesLogProps> = ({ occurrences, addOccurre
                   <p className="text-gray-200 mt-1 whitespace-pre-wrap">{occurrence.description}</p>
                 </div>
                 <button
-                  onClick={() => {
-                    if (confirm(`Tem certeza que deseja remover esta ocorrência?`)) {
-                      removeOccurrence(occurrence.id);
-                    }
-                  }}
+                  onClick={() => handleRemove(occurrence.id)}
                   className="p-2 ml-2 flex-shrink-0 rounded-full text-gray-400 hover:bg-red-500 hover:text-white transition-colors"
                   aria-label={`Remover ocorrência`}
                 >
@@ -89,7 +105,7 @@ const OccurrencesLog: React.FC<OccurrencesLogProps> = ({ occurrences, addOccurre
               </div>
             ))
           ) : (
-            <p className="text-gray-400 italic text-center py-4">Nenhuma ocorrência registrada.</p>
+            <p className="text-gray-400 italic text-center py-4">Nenhuma ocorrência registrada na planilha.</p>
           )}
         </div>
       </div>
