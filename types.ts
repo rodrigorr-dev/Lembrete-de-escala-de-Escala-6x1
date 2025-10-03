@@ -1,4 +1,3 @@
-
 export type ScheduleType = '5x1' | 'fixedSundayOff';
 
 export interface Vacation {
@@ -13,4 +12,10 @@ export interface TeamMember {
   firstDayOff?: Date;
   birthday?: Date;
   vacation?: Vacation[];
+}
+
+export interface Occurrence {
+  id: string;
+  date: Date;
+  description: string;
 }

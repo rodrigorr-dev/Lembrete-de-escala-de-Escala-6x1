@@ -1,11 +1,11 @@
-
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import { TeamMember, ScheduleType, Vacation } from './types';
+import { TeamMember, ScheduleType, Vacation, Occurrence } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import Header from './components/Header';
 import DailyRoster from './components/DailyRoster';
 import TeamManagement from './components/TeamManagement';
 import CalendarView from './components/CalendarView';
+import OccurrencesLog from './components/OccurrencesLog';
 
 const initialTeam: TeamMember[] = [
   {
@@ -80,7 +80,9 @@ const initialTeam: TeamMember[] = [
 
 const App: React.FC = () => {
   const [teamMembers, setTeamMembers] = useLocalStorage<TeamMember[]>('teamMembers', initialTeam);
+  const [occurrences, setOccurrences] = useLocalStorage<Occurrence[]>('occurrences', []);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [activeTab, setActiveTab] = useState<'schedule' | 'occurrences'>('schedule');
   const dailyRosterRef = useRef<HTMLDivElement>(null);
 
   const addMember = useCallback((name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => {
@@ -123,6 +125,19 @@ const App: React.FC = () => {
       ).sort((a, b) => a.name.localeCompare(b.name))
     );
   }, [setTeamMembers]);
+
+  const addOccurrence = useCallback((date: Date, description: string) => {
+    const newOccurrence: Occurrence = {
+      id: crypto.randomUUID(),
+      date,
+      description,
+    };
+    setOccurrences(prev => [...prev, newOccurrence]);
+  }, [setOccurrences]);
+
+  const removeOccurrence = useCallback((id: string) => {
+    setOccurrences(prev => prev.filter(occurrence => occurrence.id !== id));
+  }, [setOccurrences]);
 
   const isOffToday = useCallback((member: TeamMember, date: Date): boolean => {
       if (member.scheduleType === 'fixedSundayOff') {
@@ -195,32 +210,79 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
       <Header />
-      <main className="container mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-           <CalendarView
-            currentDate={currentDate}
-            setCurrentDate={handleDateSelect}
-            teamMembers={teamMembers}
-            isOffToday={isOffToday}
-            isOnVacation={isOnVacation}
-           />
-           <div ref={dailyRosterRef}>
-            <DailyRoster 
-              workingToday={workingToday}
-              offToday={offToday}
-              onVacationToday={onVacationToday}
-              currentDate={currentDate}
-              teamMembers={teamMembers}
-            />
-          </div>
+      <main className="container mx-auto p-4 md:p-8">
+        {/* Tab Navigation */}
+        <div className="mb-6 md:mb-8">
+          <nav className="flex space-x-2 sm:space-x-4 border-b border-gray-700" aria-label="Abas principais">
+            <button
+              onClick={() => setActiveTab('schedule')}
+              role="tab"
+              aria-selected={activeTab === 'schedule'}
+              className={`py-2 px-3 sm:px-4 text-sm sm:text-base font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-500 rounded-t-md ${
+                activeTab === 'schedule'
+                  ? 'border-b-2 border-teal-400 text-teal-400'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+              }`}
+            >
+              Escala e Equipe
+            </button>
+            <button
+              onClick={() => setActiveTab('occurrences')}
+              role="tab"
+              aria-selected={activeTab === 'occurrences'}
+              className={`py-2 px-3 sm:px-4 text-sm sm:text-base font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-500 rounded-t-md ${
+                activeTab === 'occurrences'
+                  ? 'border-b-2 border-teal-400 text-teal-400'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+              }`}
+            >
+              Registro de Ocorrências
+            </button>
+          </nav>
         </div>
-        <div className="lg:col-span-1">
-          <TeamManagement 
-            teamMembers={teamMembers}
-            addMember={addMember}
-            removeMember={removeMember}
-            updateMember={updateMember}
-          />
+
+        {/* Tab Content */}
+        <div role="tabpanel">
+          {activeTab === 'schedule' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                <CalendarView
+                  currentDate={currentDate}
+                  setCurrentDate={handleDateSelect}
+                  teamMembers={teamMembers}
+                  isOffToday={isOffToday}
+                  isOnVacation={isOnVacation}
+                />
+                <div ref={dailyRosterRef}>
+                  <DailyRoster
+                    workingToday={workingToday}
+                    offToday={offToday}
+                    onVacationToday={onVacationToday}
+                    currentDate={currentDate}
+                    teamMembers={teamMembers}
+                  />
+                </div>
+              </div>
+              <div className="lg:col-span-1">
+                <TeamManagement
+                  teamMembers={teamMembers}
+                  addMember={addMember}
+                  removeMember={removeMember}
+                  updateMember={updateMember}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'occurrences' && (
+             <div className="max-w-4xl mx-auto">
+                <OccurrencesLog
+                    occurrences={occurrences}
+                    addOccurrence={addOccurrence}
+                    removeOccurrence={removeOccurrence}
+                />
+             </div>
+          )}
         </div>
       </main>
     </div>

@@ -1,5 +1,5 @@
-
-import { useState, useEffect } from 'react';
+// Fix: Import React to provide the 'React' namespace for types like React.Dispatch.
+import React, { useState, useEffect } from 'react';
 
 export function useLocalStorage<T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -11,7 +11,7 @@ export function useLocalStorage<T,>(key: string, initialValue: T): [T, React.Dis
       if(item) {
         // Revive dates
         return JSON.parse(item, (key, value) => {
-            if ((key === 'firstDayOff' || key === 'birthday' || key === 'start' || key === 'end') && typeof value === 'string' && value) {
+            if ((key === 'firstDayOff' || key === 'birthday' || key === 'start' || key === 'end' || key === 'date') && typeof value === 'string' && value) {
                 return new Date(value);
             }
             return value;
