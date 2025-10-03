@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
 import { TeamMember, ScheduleType, Vacation } from '../types';
-import AddMemberForm from './AddMemberForm';
 import EditMemberModal from './EditMemberModal';
 import { TrashIcon, EditIcon } from './Icons';
 import { getNextDayOff } from '../utils/dateUtils';
@@ -27,7 +25,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember,
       <div className="bg-gray-800 rounded-lg shadow-xl p-6 space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-white mb-4">Gerenciar Equipe</h2>
-          <AddMemberForm addMember={addMember} />
         </div>
         
         <div>
@@ -74,7 +71,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember,
                 </div>
               ))
             ) : (
-              <p className="text-gray-400 italic text-center py-4">Nenhum membro na equipe ainda. Adicione um acima!</p>
+              <p className="text-gray-400 italic text-center py-4">Nenhum membro na equipe.</p>
             )}
           </div>
         </div>
