@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { TeamMember, ScheduleType, Vacation, Occurrence } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -16,7 +17,7 @@ const initialTeam: TeamMember[] = [
     scheduleType: '5x1',
     firstDayOff: new Date(2025, 7, 5),
     birthday: new Date(1900, 3, 13), // 13/abr
-    vacation: [{ start: new Date(2025, 9, 13), end: new Date(2025, 9, 31) }], // Outubro
+    vacation: [{ start: new Date(2025, 9, 11), end: new Date(2025, 9, 30) }], // Outubro
   },
   {
     id: 'f2a1b3e9-4d5c-6b7a-8c9d-0e1f2a3b4c5d',
@@ -25,12 +26,6 @@ const initialTeam: TeamMember[] = [
     firstDayOff: new Date(2025, 7, 2),
     birthday: new Date(1900, 7, 2), // 02/ago
     vacation: [{ start: new Date(2025, 2, 1), end: new Date(2025, 2, 31) }], // Março
-  },
-  {
-    id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
-    name: 'Antonio Rodrigo', // Mapping from Antonio Marcos in the image
-    scheduleType: 'fixedSundayOff',
-    birthday: new Date(1900, 11, 26), // 26/dez
   },
   {
     id: 'b3e8c1a2-5d6f-7a8b-9c0d-1e2f3a4b5c6d',
@@ -64,19 +59,12 @@ const initialTeam: TeamMember[] = [
     vacation: [{ start: new Date(2025, 5, 1), end: new Date(2025, 5, 30) }], // Junho
   },
   {
-    id: '4b6d3a2c-1e9f-8d7c-6b5a-4f3e2d1c0b9a',
-    name: 'Pedro Henrique',
-    scheduleType: '5x1',
-    firstDayOff: new Date(2025, 7, 7),
-    birthday: new Date(1900, 4, 7), // 07/mai
-  },
-  {
     id: 'd1b2a9e8-3c4f-4a6b-8b0e-9d2f8c7e4a1b',
     name: 'Valci',
     scheduleType: '5x1',
     firstDayOff: new Date(2025, 7, 3),
     birthday: new Date(1900, 6, 29), // 29/jul
-    vacation: [{ start: new Date(2025, 10, 1), end: new Date(2025, 10, 30) }], // Novembro
+    vacation: [{ start: new Date(2025, 10, 11), end: new Date(2025, 11, 1) }], // Nov/Dez
   },
 ];
 

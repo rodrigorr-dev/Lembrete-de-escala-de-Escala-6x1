@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { TeamMember, ScheduleType, Vacation } from '../types';
 import EditMemberModal from './EditMemberModal';
-import { TrashIcon, EditIcon } from './Icons';
+import { TrashIcon, EditIcon, PlusIcon } from './Icons';
 import { getNextDayOff } from '../utils/dateUtils';
 import VacationList from './VacationList';
+import AddMemberForm from './AddMemberForm';
 
 interface TeamManagementProps {
   teamMembers: TeamMember[];
@@ -14,19 +15,38 @@ interface TeamManagementProps {
 
 const TeamManagement: React.FC<TeamManagementProps> = ({ teamMembers, addMember, removeMember, updateMember }) => {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleUpdateMember = (id: string, name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date, vacation?: Vacation[]) => {
     updateMember(id, name, scheduleType, firstDayOff, birthday, vacation);
     setEditingMember(null);
   };
 
+  const handleAddMember = (name: string, scheduleType: ScheduleType, firstDayOff?: Date, birthday?: Date) => {
+    addMember(name, scheduleType, firstDayOff, birthday);
+    setIsAdding(false); // Close form after adding
+  };
+
   return (
     <>
       <div className="bg-gray-800 rounded-lg shadow-xl p-6 space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-4">Gerenciar Equipe</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-white">Gerenciar Equipe</h2>
+          <button 
+            onClick={() => setIsAdding(!isAdding)} 
+            className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300"
+          >
+            <PlusIcon />
+            {isAdding ? 'Cancelar' : 'Novo Membro'}
+          </button>
         </div>
         
+        {isAdding && (
+           <div className="border-t border-gray-700 pt-6 mt-6">
+             <AddMemberForm addMember={handleAddMember} />
+           </div>
+        )}
+
         <div>
           <h3 className="text-xl font-semibold mb-4 text-white">Membros da Equipe ({teamMembers.length})</h3>
           <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
