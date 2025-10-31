@@ -194,7 +194,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           const vacationMembers = teamMembers.filter(member => isOnVacation(member, day));
 
           const dayClasses = `
-            p-2 ${isGeneratingPdf ? 'min-h-[7rem]' : 'h-28'} flex flex-col items-center justify-start
+            p-2 ${isGeneratingPdf ? 'min-h-[8rem]' : 'h-32'} flex flex-col items-center justify-start
             ${isGeneratingPdf ? '' : 'cursor-pointer transition-colors duration-200'}
             rounded-md border
             ${isSelected ? 'bg-teal-500/30 border-teal-500' : 'bg-gray-700/50 border-gray-700'}
