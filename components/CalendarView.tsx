@@ -134,7 +134,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl p-6" ref={calendarRef}>
+    <div className="bg-gray-800 rounded-lg shadow-xl p-6 ring-1 ring-inset ring-black/30" ref={calendarRef}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold text-white capitalize">
           {new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(currentDate)}
