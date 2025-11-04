@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useRef } from 'react';
 import { TeamMember } from '../types';
 import { ChevronLeftIcon, ChevronRightIcon, PdfIcon } from './Icons';
@@ -31,6 +32,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   const calendarRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isPrintMode, setIsPrintMode] = useState(true);
 
 
   const firstDayOfMonth = new Date(year, month, 1);
@@ -62,68 +64,100 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     if (!calendarRef.current) return;
 
     setIsGeneratingPdf(true);
+    const element = calendarRef.current;
     
-    // Allow React to re-render with PDF-friendly styles before capturing
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Injeta estilos para o modo de impressão se estiver ativado
+    const styleTag = document.createElement('style');
+    styleTag.id = 'print-styles';
+    if (isPrintMode) {
+      styleTag.innerHTML = `
+        .print-mode-override.bg-gray-800, .print-mode-override .bg-gray-800,
+        .print-mode-override .bg-gray-700, .print-mode-override .bg-gray-700\\/50 { background-color: #ffffff !important; }
+        .print-mode-override, .print-mode-override .text-white, .print-mode-override .text-gray-100, .print-mode-override .text-gray-300, .print-mode-override .text-gray-400 { color: #000000 !important; }
+        .print-mode-override .text-teal-400 { color: #0f766e !important; }
+        .print-mode-override .text-blue-300 { color: #1e40af !important; }
+        .print-mode-override .text-yellow-300 { color: #92400e !important; }
+
+        /* Aumenta a fonte para melhor legibilidade */
+        .print-mode-override .text-xl { font-size: 1.5rem !important; }
+        .print-mode-override .text-sm { font-size: 1rem !important; }
+        .print-mode-override .text-xs { font-size: 0.95rem !important; line-height: 1.3 !important; }
+        .print-mode-override .w-7.h-7 { width: 2rem !important; height: 2rem !important; } /* Acomoda números de dias maiores */
+
+        /* Escurece as bordas */
+        .print-mode-override .border-gray-700, .print-mode-override .border-gray-700\\/50 { border-color: #6b7280 !important; }
+        .print-mode-override .border-teal-500 { border-color: #0d9488 !important; border-width: 2px !important; }
+        .print-mode-override .ring-black\\/30 { ring-color: transparent !important; }
+        
+        /* Ajustes de fundo e borda de elementos */
+        .print-mode-override .bg-teal-500\\/30 { background-color: #ccfbf1 !important; }
+        .print-mode-override .bg-teal-500, .print-mode-override .bg-teal-600 { background-color: #0d9488 !important; color: #ffffff !important; }
+        .print-mode-override .bg-yellow-500\\/20 { background-color: #fefce8 !important; border: 1px solid #ca8a04 !important; padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; }
+        .print-mode-override .bg-blue-500\\/20 { background-color: #eff6ff !important; border: 1px solid #3b82f6 !important; padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; }
+        
+        .print-mode-override .hover\\:bg-gray-700:hover, .print-mode-override .hover\\:bg-gray-600\\/70:hover { background-color: #ffffff !important; }
+      `;
+      document.head.appendChild(styleTag);
+      element.classList.add('print-mode-override');
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     const originalBodyBg = document.body.style.backgroundColor;
-    document.body.style.backgroundColor = '#111827'; // Match the app's bg
+    const originalElementWidth = element.style.width;
+
+    document.body.style.backgroundColor = isPrintMode ? '#ffffff' : '#111827';
+    element.style.width = '1280px';
+    
+    await new Promise(resolve => setTimeout(resolve, 150));
 
     try {
-        const canvas = await window.html2canvas(calendarRef.current, {
-            scale: 2, // Higher scale for better quality
-            backgroundColor: '#111827',
+        const canvas = await window.html2canvas(element, {
+            scale: 2,
+            backgroundColor: isPrintMode ? '#ffffff' : '#111827',
             useCORS: true,
+            allowTaint: true,
         });
 
         const imgData = canvas.toDataURL('image/png');
         const { jsPDF } = window.jspdf;
         
-        // Use A4 landscape for a standard, predictable layout
-        const pdf = new jsPDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: 'a4'
-        });
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
         
-        const pdfWidth = pdf.internal.pageSize.getWidth(); // in mm
-        const pdfHeight = pdf.internal.pageSize.getHeight(); // in mm
-        
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const canvasAspectRatio = canvasWidth / canvasHeight;
-
-        // Add a small margin
-        const margin = 5; // 5mm margin
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasAspectRatio = canvas.width / canvas.height;
+        const margin = 10;
         const effectivePdfWidth = pdfWidth - (margin * 2);
         const effectivePdfHeight = pdfHeight - (margin * 2);
 
-        // Calculate the image dimensions to fit inside the PDF page with margin
         let imgWidthOnPdf = effectivePdfWidth;
         let imgHeightOnPdf = imgWidthOnPdf / canvasAspectRatio;
 
-        // If the height is too large, scale down based on height instead
         if (imgHeightOnPdf > effectivePdfHeight) {
             imgHeightOnPdf = effectivePdfHeight;
             imgWidthOnPdf = imgHeightOnPdf * canvasAspectRatio;
         }
 
-        // Center the image
         const xOffset = (pdfWidth - imgWidthOnPdf) / 2;
         const yOffset = (pdfHeight - imgHeightOnPdf) / 2;
 
         pdf.addImage(imgData, 'PNG', xOffset, yOffset, imgWidthOnPdf, imgHeightOnPdf);
         
         const monthYear = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(currentDate);
-        pdf.save(`escala_${monthYear.replace(/ de /g, '_')}.pdf`);
+        pdf.save(`escala_${monthYear.replace(/ de /g, '_').toLowerCase()}.pdf`);
 
     } catch (error) {
         console.error("Erro ao gerar PDF:", error);
-        alert("Ocorreu um erro ao gerar o PDF. Tente novamente.");
+        alert("Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.");
     } finally {
-        // Restore everything after PDF generation
-        setIsGeneratingPdf(false);
+        element.style.width = originalElementWidth;
         document.body.style.backgroundColor = originalBodyBg;
+        if (isPrintMode) {
+          element.classList.remove('print-mode-override');
+          document.getElementById('print-styles')?.remove();
+        }
+        setIsGeneratingPdf(false);
     }
   };
 
@@ -140,6 +174,18 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           {new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(currentDate)}
         </h2>
         <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pr-2 border-r border-gray-600">
+                <label htmlFor="print-mode-toggle" className="text-sm text-gray-300 select-none cursor-pointer" title="Gera um PDF com fundo branco para economizar tinta de impressora">
+                    Modo Impressão
+                </label>
+                <input
+                    id="print-mode-toggle"
+                    type="checkbox"
+                    checked={isPrintMode}
+                    onChange={(e) => setIsPrintMode(e.target.checked)}
+                    className="w-4 h-4 text-teal-600 bg-gray-700 border-gray-600 rounded focus:ring-teal-500 cursor-pointer focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800"
+                />
+            </div>
             <button
               onClick={handleDownloadPdf}
               disabled={isGeneratingPdf}
