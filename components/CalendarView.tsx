@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useRef } from 'react';
 import { TeamMember } from '../types';
 import { ChevronLeftIcon, ChevronRightIcon, PdfIcon } from './Icons';
@@ -259,7 +258,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 {day.getDate()}
               </div>
               <div className={`w-full ${isGeneratingPdf ? '' : 'overflow-y-auto'} text-xs space-y-1 text-left`}>
-                {vacationMembers.length > 0 && (
+                {vacationMembers.length > 0 && !isGeneratingPdf && (
                    <div className="bg-yellow-500/20 text-yellow-300 rounded px-1 py-0.5 text-center truncate" title={`${vacationMembers.length} de férias`}>
                      ✈️ {vacationMembers.length} Férias
                    </div>
